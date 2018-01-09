@@ -1,45 +1,14 @@
 open DOM;
 
-let width = 800;
-let height = 600;
+let width = 600;
+let height = 240;
 let request = ref(0);
-
-let colors = [
-  "#69D2E7",
-  "#A7DBD8",
-  "#E0E4CC",
-  "#F38630",
-  "#FA6900",
-  "#FF4E50",
-  "#F9D423"
-];
 
 let updatesPerSecond = 60.;
 
 let updateTicks = 1000. /. updatesPerSecond;
 
-type particle = {
-  x: float,
-  y: float,
-  vx: float,
-  vy: float,
-  r: float,
-  wander: float,
-  theta: float,
-  drag: float,
-  color: string,
-  alive: bool
-};
-
-type controls = {
-  left: bool,
-  right: bool,
-  up: bool,
-  down: bool,
-  jump: bool,
-};
-
-let neutralControls = {
+let neutralControls: State.controls = {
   left: false,
   right: false,
   up: false,
@@ -49,27 +18,17 @@ let neutralControls = {
 
 let controlFrame = ref(neutralControls);
 
-type state = {
-  c: Canvas.context,
-  t: float,
-  currentControls: controls,
-  pastControls: controls,
-  sx: float,
-  sy: float,
-  player: Manifest.spriteInst,
-};
-
 type actions =
   | Tick
-  | ControlUpdate(controls)
+  | ControlUpdate(State.controls)
   | NoOp;
 
-type rootStore = Reduce.t(state, actions);
+type rootStore = Reduce.t(State.state, actions);
 
 let randRange = (min: float, max: float) =>
   Math.random() *. (max -. min) +. min;
 
-let updateControls = (s: state, c: controls) => {
+let updateControls = (s: State.state, c: State.controls) => {
   {
     ...s,
     currentControls: c,
@@ -77,7 +36,7 @@ let updateControls = (s: state, c: controls) => {
   }
 };
 
-let update = (s: state, ticks: float) => {
+let update = (s: State.state, ticks: float) => {
   let speed = 5.;
 
   let svx = switch (s.currentControls.left, s.currentControls.right) {
@@ -94,8 +53,22 @@ let update = (s: state, ticks: float) => {
   | (false, false) => 0.
   };
 
+  let p = if (abs(int_of_float(svx)) > 0 && s.currentControls != s.pastControls) {
+    if (svx > 0.) {
+      Entity.flip(Entity.change_move(s.player, Walk), false)
+    } else {
+      Entity.flip(Entity.change_move(s.player, Walk), true)
+    }
+  } else if (svx == 0.) {
+    Entity.change_move(s.player, Stand)
+  } else {
+    s.player
+  };
+
   let sx' = s.sx +. svx *. speed;
   let sy' = s.sy +. svy *. speed;
+
+  let p = Entity.move(p, int_of_float(sx'), int_of_float(sy'));
 
   {
     ...s,
@@ -104,26 +77,31 @@ let update = (s: state, ticks: float) => {
     sy: sy',
     currentControls: s.currentControls,
     pastControls: s.pastControls,
-    player: {
-      ...s.player,
-      t: s.player.t + int_of_float(ticks),
-      frame: ((s.player.t + int_of_float(ticks)) / s.player.def.tframe) mod s.player.def.frames
-    }
+    player: Entity.tick_sprite(p, ticks)
   }
 };
 
-let render = (s: state) => {
-  Canvas.clearRect(s.c, 0, 0, width, height);
-  let sdef = s.player.def;
-  let (fx, fy) = Manifest.get_frame_offset(s.player);
-  Canvas.drawImage(
-    s.c,
-    Manifest.get_sprite_sheet(sdef.sheet).img,
-    fx, fy,
-    sdef.w, sdef.h,
-    int_of_float(s.sx), int_of_float(s.sy),
-    sdef.w, sdef.h);
-  Js.log2(fx, fy);
+let render = (s: State.state) => {
+  Draw.clear(s, Background);
+  Draw.clear(s, Player);
+
+  let bg = Map.get_map();
+  for (y in 0 to 9) {
+    for (x in 0 to 24) {
+      let tile = List.nth(List.nth(bg, y), x);
+      Draw.draw_sprite(
+        s,
+        Background,
+        tile,
+        x * 24, y * 24);
+    };
+  };
+
+  Draw.draw_sprite(
+    s,
+    Player,
+    s.player.spr,
+    s.player.x, s.player.y);
   ()
 };
 
@@ -139,18 +117,24 @@ let rec frame = (store: rootStore, t': float) => {
   request := DOM.requestAnimationFrame(frame(store))
 };
 
-let reduce = (s: state, a: actions) =>
+let reduce = (s: State.state, a: actions) =>
   switch a {
   | ControlUpdate(c) => (updateControls(s, c), [])
   | Tick => (update(s, updateTicks), [])
   | NoOp => (s, [])
   };
 
-let bootstrap = () => {
+let create_layer = (id: string) => {
   let canvas = DOM.createElement("canvas");
   let _ = DOM.appendChild(canvas);
-  DOM.setWidth(canvas, width);
-  DOM.setHeight(canvas, height);
+  DOM.setWidth(canvas, Config.width);
+  DOM.setHeight(canvas, Config.height);
+  DOM.setId(canvas, id);
+
+  DOM.getContext(canvas, "2d");
+};
+
+let bootstrap = () => {
   DOM.setOnKeyDown(
     DOM.document,
     (e) => {
@@ -177,22 +161,24 @@ let bootstrap = () => {
       };
     }
   );
-  let context = DOM.getContext(canvas, "2d");
 
-  let initialState = {
-    c: context,
+  let initialState: State.state = {
     t: DOM.now(),
+    l: {
+      background: create_layer("bg"),
+      player: create_layer("player"),
+    },
     sx: float_of_int(width) /. 2.,
     sy: float_of_int(height) /. 2.,
     currentControls: neutralControls,
     pastControls: neutralControls,
-    player: Manifest.make_sprite(Player),
+    player: Entity.make_entity(Player, 0, 0),
   };
 
   let store = Reduce.create(initialState, reduce);
   Manifest.initialize();
 
-  let _ = DOM.requestAnimationFrame(frame(store));
+  request := DOM.requestAnimationFrame(frame(store));
   ()
 };
 

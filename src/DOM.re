@@ -13,6 +13,7 @@ module DOM = {
   [@bs.send]
   external addEventListener : (element, string, unit => unit) => unit =
     "addEventListener";
+  [@bs.set] external setId : (element, string) => unit = "id";
   [@bs.set] external setWidth : (element, int) => unit = "width";
   [@bs.set] external setHeight : (element, int) => unit = "height";
   [@bs.set] external setOnMouseMove : (element, mouseMoveEvent => unit) => unit = "onmousemove";
