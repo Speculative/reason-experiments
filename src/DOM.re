@@ -42,6 +42,9 @@ module Canvas = {
   [@bs.set] external strokeStyle : (context, string) => unit = "strokeStyle";
   [@bs.set] external globalAlpha : (context, float) => unit = "globalAlpha";
   [@bs.set] external globalCompositeOperation : (context, string) => unit = "globalCompositeOperation";
+  [@bs.send] external save : context => unit = "save";
+  [@bs.send] external restore : context => unit = "restore";
+  [@bs.send] external scale : context => float => float => unit = "scale";
   [@bs.send] external beginPath : context => unit = "beginPath";
   [@bs.send] external fill : context => unit = "fill";
   [@bs.send] external stroke : context => unit = "stroke";

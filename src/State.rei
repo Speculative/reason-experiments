@@ -16,8 +16,7 @@ type layers = {
 type state = {
   t: float,
   l: layers,
-  currentControls: controls,
-  pastControls: controls,
+  controls: controls,
   sx: float,
   sy: float,
   player: Entity.entityInst,

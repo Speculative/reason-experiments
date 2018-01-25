@@ -16,11 +16,14 @@ let neutralControls: State.controls = {
   jump: false,
 };
 
+let updating = ref(false);
+
 let controlFrame = ref(neutralControls);
 
 type actions =
   | Tick
   | ControlUpdate(State.controls)
+  | ControlChange
   | NoOp;
 
 type rootStore = Reduce.t(State.state, actions);
@@ -29,56 +32,71 @@ let randRange = (min: float, max: float) =>
   Math.random() *. (max -. min) +. min;
 
 let updateControls = (s: State.state, c: State.controls) => {
-  {
+  let dispatch = if (c != s.controls) {
+    [ControlChange]
+  } else {
+    []
+  };
+
+  ({
     ...s,
-    currentControls: c,
-    pastControls: s.currentControls
-  }
+    controls: c
+  },
+  dispatch)
+};
+
+let controlVelocity = (c: State.controls) => {
+  let vx = switch (c.left, c.right) {
+  | (true, false) => -1.
+  | (false, true) => 1.
+  | (true, true) => 0.
+  | (false, false) => 0.
+  };
+
+  let vy = switch (c.up, c.down) {
+  | (true, false) => -1.
+  | (false, true) => 1.
+  | (true, true) => 0.
+  | (false, false) => 0.
+  };
+
+  (vx, vy)
+};
+
+let onControlChange = (s: State.state) => {
+  let (svx, svy) = controlVelocity(s.controls);
+  let p = if (svx > 0.) {
+    Entity.flip(Entity.change_move(s.player, Walk), false)
+  } else if (svx < 0.) {
+    Entity.flip(Entity.change_move(s.player, Walk), true)
+  } else {
+    Entity.flip(Entity.change_move(s.player, Stand), s.player.spr.flip)
+  };
+
+  ({
+    ...s,
+    player: p
+  },
+  [])
 };
 
 let update = (s: State.state, ticks: float) => {
   let speed = 5.;
-
-  let svx = switch (s.currentControls.left, s.currentControls.right) {
-  | (true, false) => -1.
-  | (false, true) => 1.
-  | (true, true) => 0.
-  | (false, false) => 0.
-  };
-
-  let svy = switch (s.currentControls.up, s.currentControls.down) {
-  | (true, false) => -1.
-  | (false, true) => 1.
-  | (true, true) => 0.
-  | (false, false) => 0.
-  };
-
-  let p = if (abs(int_of_float(svx)) > 0 && s.currentControls != s.pastControls) {
-    if (svx > 0.) {
-      Entity.flip(Entity.change_move(s.player, Walk), false)
-    } else {
-      Entity.flip(Entity.change_move(s.player, Walk), true)
-    }
-  } else if (svx == 0.) {
-    Entity.change_move(s.player, Stand)
-  } else {
-    s.player
-  };
+  let (svx, svy) = controlVelocity(s.controls);
 
   let sx' = s.sx +. svx *. speed;
   let sy' = s.sy +. svy *. speed;
 
-  let p = Entity.move(p, int_of_float(sx'), int_of_float(sy'));
+  let p = Entity.move(s.player, int_of_float(sx'), int_of_float(sy'));
 
-  {
+  ({
     ...s,
     t: s.t +. ticks,
     sx: sx',
     sy: sy',
-    currentControls: s.currentControls,
-    pastControls: s.pastControls,
     player: Entity.tick_sprite(p, ticks)
-  }
+  },
+  [])
 };
 
 let render = (s: State.state) => {
@@ -108,19 +126,22 @@ let render = (s: State.state) => {
 let rec frame = (store: rootStore, t': float) => {
   DOM.cancelAnimationFrame(request^);
 
+  updating := true;
   Reduce.dispatch(store, ControlUpdate(controlFrame^));
   while (Reduce.getState(store).t < t') {
     Reduce.dispatch(store, Tick)
   };
   render(Reduce.getState(store));
 
+  updating := false;
   request := DOM.requestAnimationFrame(frame(store))
 };
 
 let reduce = (s: State.state, a: actions) =>
   switch a {
-  | ControlUpdate(c) => (updateControls(s, c), [])
-  | Tick => (update(s, updateTicks), [])
+  | ControlUpdate(c) => updateControls(s, c)
+  | ControlChange => onControlChange(s)
+  | Tick => update(s, updateTicks)
   | NoOp => (s, [])
   };
 
@@ -170,8 +191,7 @@ let bootstrap = () => {
     },
     sx: float_of_int(width) /. 2.,
     sy: float_of_int(height) /. 2.,
-    currentControls: neutralControls,
-    pastControls: neutralControls,
+    controls: neutralControls,
     player: Entity.make_entity(Player, 0, 0),
   };
 
