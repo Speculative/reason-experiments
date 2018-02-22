@@ -35,8 +35,14 @@ module DOM = {
   [@bs.set] external setSrc : (imageElement, string) => unit = "src";
 };
 
+module Uint8ClampedArray = {
+  type t;
+  [@bs.val] external from : (Js.Array.t(int)) => t = "Uint8ClampedArray.from";
+};
+
 module Canvas = {
   type context = DOM.context;
+  type imageData;
   /* Canvas API */
   [@bs.set] external fillStyle : (context, string) => unit = "fillStyle";
   [@bs.set] external strokeStyle : (context, string) => unit = "strokeStyle";
@@ -52,6 +58,15 @@ module Canvas = {
   [@bs.send] external clearRect : (context, int, int, int, int) => unit = "clearRect";
   [@bs.send] external arc : (context, float, float, float, float, float) => unit = "arc";
   [@bs.send] external drawImage : (context, DOM.imageElement, int, int, int, int, int, int, int, int) => unit = "drawImage";
+  [@bs.send] external getImageData : (context, int, int, int, int) => imageData = "getImageData";
+  [@bs.send] external putImageData : (context, imageData, int, int) => unit = "putImageData";
+
+  /* ImageData */
+  [@bs.get] external width : (imageData) => int = "width";
+  [@bs.get] external height : (imageData) => int = "height";
+  /* this is a lie, it isn't Js.Array */
+  [@bs.get] external data : (imageData) => Js.Array.t(int) = "data";
+  [@bs.new] external newImageData : (Uint8ClampedArray.t, int, int) => imageData = "ImageData";
 };
 
 module Math = {

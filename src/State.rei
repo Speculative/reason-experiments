@@ -1,4 +1,5 @@
 open DOM;
+open Immutable;
 
 type controls = {
   left: bool,
@@ -11,6 +12,15 @@ type controls = {
 type layers = {
   player: Canvas.context,
   background: Canvas.context,
+};
+
+type spriteCacheEntry = {
+  s: list(DOM.imageElement),
+  sr: list(DOM.imageElement)
+};
+
+type manifest = {
+  spriteCache: HashMap.t(Manifest.sprite, spriteCacheEntry)
 };
 
 type state = {

@@ -119,3 +119,42 @@ let make_sprite = (s: sprite) => {
   }
 };
 
+let rec range = (s: int, e: int) => {
+  let l = ref([]);
+  for (i in s to e - 1) {
+    l := [i, ...l^];
+  };
+  List.rev(l^)
+};
+
+let hflip_img = (img: Canvas.imageData): Canvas.imageData => {
+  let data = Canvas.data(img);
+  let w = Canvas.width(img);
+  let h = Canvas.height(img);
+
+  let flipped = Js.Array.mapi(
+    (v: int, i: int) => {
+      let px = (i / 4) mod w;
+      let py = (i / 4) / h;
+      let po = i mod 4;
+      let px' = w - px - 1;
+      let i' = ((py * w) + px') * 4 + po;
+      if (i' >= 2304) {
+        Js.log3(i, w, h);
+        Js.log4(px, py, po, i');
+        0
+      } else {
+        data[i']
+      }
+    },
+    Array.of_list(range(0, w * h * 4))
+  );
+
+  Canvas.newImageData(
+    Uint8ClampedArray.from(
+      flipped
+    ),
+    w, h
+  )
+};
+

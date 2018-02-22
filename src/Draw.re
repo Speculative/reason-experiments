@@ -21,10 +21,7 @@ let clear = (s: State.state, l: layer) => {
 let draw_sprite = (s: State.state, l: layer, si: Manifest.spriteInst, x: int, y: int) => {
   let (fx, fy) = Manifest.get_frame_offset(si);
   let ctx = layer_context(l, s);
-  /*
   if (si.flip) {
-    Canvas.save(ctx);
-    Canvas.scale(ctx, -1., 1.);
     Canvas.drawImage(
       ctx,
       Manifest.get_sprite_sheet(si.def.sheet).img,
@@ -32,7 +29,12 @@ let draw_sprite = (s: State.state, l: layer, si: Manifest.spriteInst, x: int, y:
       si.def.w, si.def.h,
       x, y,
       si.def.w, si.def.h);
-    Canvas.restore(layer_context(l, s));
+    let img = Canvas.getImageData(ctx, x, y, si.def.w, si.def.h);
+    Canvas.clearRect(
+      ctx,
+      x, y,
+      si.def.w, si.def.h);
+    Canvas.putImageData(ctx, Manifest.hflip_img(img), x, y);
   } else {
     Canvas.drawImage(
       ctx,
@@ -42,13 +44,5 @@ let draw_sprite = (s: State.state, l: layer, si: Manifest.spriteInst, x: int, y:
       x, y,
       si.def.w, si.def.h);
   };
-  */
-  Canvas.drawImage(
-    ctx,
-    Manifest.get_sprite_sheet(si.def.sheet).img,
-    fx, fy,
-    si.def.w, si.def.h,
-    x, y,
-    si.def.w, si.def.h);
   ()
 };
