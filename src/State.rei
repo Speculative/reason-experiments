@@ -20,7 +20,7 @@ type spriteCacheEntry = {
 };
 
 type manifest = {
-  spriteCache: HashMap.t(Manifest.sprite, spriteCacheEntry)
+  spriteCache: HashMap.t(MySprites.sprite, spriteCacheEntry)
 };
 
 type state = {

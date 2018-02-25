@@ -1,3 +1,5 @@
+open MyManifest;
+
 type entity =
   | Player;
 
@@ -6,8 +8,8 @@ type moveState =
   | Walk;
 
 type entityDef = {
-  sprStand: Manifest.sprite,
-  sprWalk: Manifest.sprite,
+  sprStand: MySprites.sprite,
+  sprWalk: MySprites.sprite,
   w: int,
   h: int,
 };
@@ -15,14 +17,14 @@ type entityDef = {
 type entityInst = {
   def: entityDef,
   move: moveState,
-  spr: Manifest.spriteInst,
+  spr: MySprites.spriteInst,
   x: int,
   y: int,
 };
 
 let player = {
-  sprStand: PlayerStand,
-  sprWalk: PlayerWalk,
+  sprStand: MySprites.PlayerStand,
+  sprWalk: MySprites.PlayerWalk,
   w: 24,
   h: 24,
 };
@@ -34,7 +36,7 @@ let make_entity = (e: entity, sx, sy) => {
   {
     def: edef,
     move: Stand,
-    spr: Manifest.make_sprite(edef.sprStand),
+    spr: MyManifest.make_sprite(edef.sprStand),
     x: sx,
     y: sy,
   }
@@ -65,7 +67,7 @@ let change_move = (ei: entityInst, m: moveState) => {
   | Walk => ei.def.sprWalk
   };
 
-  let spr = Manifest.make_sprite(s);
+  let spr = MyManifest.make_sprite(s);
 
   {
     ...ei,

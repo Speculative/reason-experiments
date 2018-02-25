@@ -33,6 +33,7 @@ module DOM = {
 
   [@bs.new] external image : unit => imageElement = "Image";
   [@bs.set] external setSrc : (imageElement, string) => unit = "src";
+  [@bs.set] external setOnLoad : (imageElement, unit => unit) => unit = "onload";
 };
 
 module Uint8ClampedArray = {

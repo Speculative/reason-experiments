@@ -196,7 +196,7 @@ let bootstrap = () => {
   };
 
   let store = Reduce.create(initialState, reduce);
-  Manifest.initialize();
+  MySprites.initialize();
 
   request := DOM.requestAnimationFrame(frame(store));
   ()

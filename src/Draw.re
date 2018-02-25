@@ -1,4 +1,5 @@
 open DOM;
+open MyManifest;
 
 type layer =
   | Player
@@ -18,13 +19,13 @@ let clear = (s: State.state, l: layer) => {
     Config.width, Config.height);
 };
 
-let draw_sprite = (s: State.state, l: layer, si: Manifest.spriteInst, x: int, y: int) => {
-  let (fx, fy) = Manifest.get_frame_offset(si);
+let draw_sprite = (s: State.state, l: layer, si: MySprites.spriteInst, x: int, y: int) => {
+  let (fx, fy) = MyManifest.get_frame_offset(si);
   let ctx = layer_context(l, s);
   if (si.flip) {
     Canvas.drawImage(
       ctx,
-      Manifest.get_sprite_sheet(si.def.sheet).img,
+      MySprites.get_sprite_sheet_def(si.def.sheet).img,
       fx, fy,
       si.def.w, si.def.h,
       x, y,
@@ -34,11 +35,11 @@ let draw_sprite = (s: State.state, l: layer, si: Manifest.spriteInst, x: int, y:
       ctx,
       x, y,
       si.def.w, si.def.h);
-    Canvas.putImageData(ctx, Manifest.hflip_img(img), x, y);
+    Canvas.putImageData(ctx, MyManifest.hflip_img(img), x, y);
   } else {
     Canvas.drawImage(
       ctx,
-      Manifest.get_sprite_sheet(si.def.sheet).img,
+      MySprites.get_sprite_sheet_def(si.def.sheet).img,
       fx, fy,
       si.def.w, si.def.h,
       x, y,
@@ -46,3 +47,4 @@ let draw_sprite = (s: State.state, l: layer, si: Manifest.spriteInst, x: int, y:
   };
   ()
 };
+
