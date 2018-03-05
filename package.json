@@ -11,7 +11,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "bs-platform": "2.0.0",
+    "bs-platform": "^2.2.1",
     "bs-webapi": "^0.7.0",
     "webpack": "^3.10.0",
     "webpack-dev-server": "^2.9.4"

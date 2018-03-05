@@ -8,7 +8,7 @@ let updatesPerSecond = 60.;
 
 let updateTicks = 1000. /. updatesPerSecond;
 
-let neutralControls: State.controls = {
+let neutralControls: Controls.controls = {
   left: false,
   right: false,
   up: false,
@@ -20,20 +20,14 @@ let updating = ref(false);
 
 let controlFrame = ref(neutralControls);
 
-type actions =
-  | Tick
-  | ControlUpdate(State.controls)
-  | ControlChange
-  | NoOp;
-
-type rootStore = Reduce.t(State.state, actions);
+type rootStore = Reduce.t(State.state, Actions.actions);
 
 let randRange = (min: float, max: float) =>
   Math.random() *. (max -. min) +. min;
 
-let updateControls = (s: State.state, c: State.controls) => {
+let updateControls = (s: State.state, c: Controls.controls) => {
   let dispatch = if (c != s.controls) {
-    [ControlChange]
+    [Actions.ControlChange]
   } else {
     []
   };
@@ -45,7 +39,7 @@ let updateControls = (s: State.state, c: State.controls) => {
   dispatch)
 };
 
-let controlVelocity = (c: State.controls) => {
+let controlVelocity = (c: Controls.controls) => {
   let vx = switch (c.left, c.right) {
   | (true, false) => -1.
   | (false, true) => 1.
@@ -137,7 +131,7 @@ let rec frame = (store: rootStore, t': float) => {
   request := DOM.requestAnimationFrame(frame(store))
 };
 
-let reduce = (s: State.state, a: actions) =>
+let reduce = (s: State.state, a: Actions.actions) =>
   switch a {
   | ControlUpdate(c) => updateControls(s, c)
   | ControlChange => onControlChange(s)
@@ -183,6 +177,8 @@ let bootstrap = () => {
     }
   );
 
+  let spriteCache: Immutable.IntMap.t(State.spriteCacheEntry) = Immutable.IntMap.empty();
+
   let initialState: State.state = {
     t: DOM.now(),
     l: {
@@ -193,10 +189,13 @@ let bootstrap = () => {
     sy: float_of_int(height) /. 2.,
     controls: neutralControls,
     player: Entity.make_entity(Player, 0, 0),
+    manifest: {
+      spriteCache: spriteCache
+    }
   };
 
   let store = Reduce.create(initialState, reduce);
-  MySprites.initialize();
+  Sprites.initialize();
 
   request := DOM.requestAnimationFrame(frame(store));
   ()

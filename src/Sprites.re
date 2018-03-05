@@ -1,44 +1,53 @@
-open DOM;
-
 /*
 ###########################
 # Concrete resource names #
 ###########################
  */
 type spriteSheet =
-  | PlayerSheet
-  | TileSheet;
+| PlayerSheet
+| TileSheet;
 
 type sprite =
-  | PlayerStand
-  | PlayerWalk
-  | Background;
+| PlayerStand
+| PlayerWalk
+| Background;
 
-  type spriteSheetDef = {
-    /*
-    url: string,
-     */
-    img: DOM.imageElement,
-    w: int,
-    h: int,
-  };
+/*
+########################
+# Resource definitions #
+########################
+ */
+type spriteSheetDef = {
+  sprites: list(sprite),
+  /*
+  url: string,
+  */
+  img: DOM.DOM.imageElement,
+  w: int,
+  h: int,
+};
 
-  type spriteDef = {
-    sheet: spriteSheet,
-    x: int,
-    y: int,
-    w: int,
-    h: int,
-    frames: int,
-    tframe: int,
-  };
+type spriteDef = {
+  sheet: spriteSheet,
+  x: int,
+  y: int,
+  w: int,
+  h: int,
+  frames: int,
+  tframe: int,
+};
 
-  type spriteInst = {
-    def: spriteDef,
-    frame: int,
-    t: int,
-    flip: bool
-  };
+/*
+#####################
+# Runtime resources #
+#####################
+ */
+type spriteInst = {
+  def: spriteDef,
+  frame: int,
+  t: int,
+  flip: bool,
+};
 
 /*
 ############################
@@ -46,19 +55,21 @@ type sprite =
 ############################
  */
 let playerSheet = {
+  sprites: [PlayerStand, PlayerWalk],
   /*
   url: "assets/player.png",
   */
-  img: DOM.image(),
+  img: DOM.DOM.image(),
   w: 240,
   h: 240,
 };
 
 let tileSheet = {
+  sprites: [Background],
   /*
   url: "assets/tiles.png",
   */
-  img: DOM.image(),
+  img: DOM.DOM.image(),
   w: 384,
   h: 192,
 };
@@ -68,11 +79,6 @@ let get_sprite_sheet_def = (s: spriteSheet): spriteSheetDef => {
   | PlayerSheet => playerSheet
   | TileSheet => tileSheet
   };
-};
-
-let initialize = () => {
-  DOM.setSrc(playerSheet.img, "assets/player.png");
-  DOM.setSrc(tileSheet.img, "assets/tiles.png");
 };
 
 /*
@@ -118,3 +124,22 @@ let get_sprite_def = (s: sprite) => {
   };
 };
 
+let get_sprite_id = (s: sprite) => {
+  switch s {
+  | PlayerStand => 0
+  | PlayerWalk => 1
+  | Background => 2
+  };
+};
+
+let get_sheet_sprites = (s: spriteSheet) => {
+  switch s {
+  | PlayerSheet => [PlayerStand, PlayerWalk]
+  | TileSheet => [Background]
+  };
+};
+
+let initialize = () => {
+  DOM.DOM.setSrc(playerSheet.img, "assets/player.png");
+  DOM.DOM.setSrc(tileSheet.img, "assets/tiles.png");
+};

@@ -1,13 +1,4 @@
 open DOM;
-open Immutable;
-
-type controls = {
-  left: bool,
-  right: bool,
-  up: bool,
-  down: bool,
-  jump: bool,
-};
 
 type layers = {
   player: Canvas.context,
@@ -15,20 +6,21 @@ type layers = {
 };
 
 type spriteCacheEntry = {
-  s: list(DOM.imageElement),
-  sr: list(DOM.imageElement)
+  s: list(Canvas.imageData),
+  sf: list(Canvas.imageData)
 };
 
 type manifest = {
-  spriteCache: HashMap.t(MySprites.sprite, spriteCacheEntry)
+  spriteCache: Immutable.IntMap.t(spriteCacheEntry)
 };
 
 type state = {
   t: float,
   l: layers,
-  controls: controls,
+  controls: Controls.controls,
   sx: float,
   sy: float,
   player: Entity.entityInst,
+  manifest: manifest,
 };
 

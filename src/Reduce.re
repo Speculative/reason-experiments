@@ -24,3 +24,12 @@ let dispatch = (s: t('state, 'action), a: 'action) => {
 };
 
 let getState = (s: t('state, 'action)) => s.state^;
+
+let drainDispatch = (s: t('state, 'action), l: list('action)) => {
+  l
+  |> List.rev
+  |> List.iter((a: 'action) => {
+      dispatch(s, a);
+    });
+};
+

@@ -1,4 +1,4 @@
-open MyManifest;
+open Sprites;
 
 type entity =
   | Player;
@@ -7,9 +7,9 @@ type moveState =
   | Stand
   | Walk;
 
+
 type entityDef = {
-  sprStand: MySprites.sprite,
-  sprWalk: MySprites.sprite,
+  getSprite: (moveState) => Sprites.sprite,
   w: int,
   h: int,
 };
@@ -17,29 +17,9 @@ type entityDef = {
 type entityInst = {
   def: entityDef,
   move: moveState,
-  spr: MySprites.spriteInst,
+  spr: spriteInst,
   x: int,
   y: int,
-};
-
-let player = {
-  sprStand: MySprites.PlayerStand,
-  sprWalk: MySprites.PlayerWalk,
-  w: 24,
-  h: 24,
-};
-
-let make_entity = (e: entity, sx, sy) => {
-  let edef = switch (e) {
-  | Player => player
-  };
-  {
-    def: edef,
-    move: Stand,
-    spr: MyManifest.make_sprite(edef.sprStand),
-    x: sx,
-    y: sy,
-  }
 };
 
 let tick_sprite = (ei: entityInst, ticks: float) => {
@@ -61,13 +41,44 @@ let move = (ei: entityInst, x': int, y': int) => {
   }
 };
 
-let change_move = (ei: entityInst, m: moveState) => {
-  let s = switch(m) {
-  | Stand => ei.def.sprStand
-  | Walk => ei.def.sprWalk
+let flip = (ei: entityInst, f: bool) => {
+  {
+    ...ei,
+    spr: {
+      ...ei.spr,
+      flip: f
+    }
+  }
+};
+
+let player = {
+  getSprite: (m: moveState) =>
+    switch (m) {
+    | Stand => PlayerStand
+    | Walk => PlayerWalk
+    },
+  w: 24,
+  h: 24,
+};
+
+let get_entity_def = (e: entity) =>
+  switch (e) {
+  | Player => player
   };
 
-  let spr = MyManifest.make_sprite(s);
+let make_entity = (e: entity, sx, sy) => {
+  let edef = get_entity_def(e);
+  {
+    def: edef,
+    move: Stand,
+    spr: Manifest.make_sprite(edef.getSprite(Stand)),
+    x: sx,
+    y: sy,
+  }
+};
+
+let change_move = (ei: entityInst, m: moveState) => {
+  let spr = Manifest.make_sprite(ei.def.getSprite(m));
 
   {
     ...ei,
@@ -78,14 +89,4 @@ let change_move = (ei: entityInst, m: moveState) => {
     }
   }
 };
-
-let flip = (ei: entityInst, f: bool) => {
-  {
-    ...ei,
-    spr: {
-      ...ei.spr,
-      flip: f
-    }
-  }
-}
 
