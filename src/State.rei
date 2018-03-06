@@ -5,15 +5,6 @@ type layers = {
   background: Canvas.context,
 };
 
-type spriteCacheEntry = {
-  s: list(Canvas.imageData),
-  sf: list(Canvas.imageData)
-};
-
-type manifest = {
-  spriteCache: Immutable.IntMap.t(spriteCacheEntry)
-};
-
 type state = {
   t: float,
   l: layers,
@@ -21,6 +12,6 @@ type state = {
   sx: float,
   sy: float,
   player: Entity.entityInst,
-  manifest: manifest,
+  manifest: ManifestState.state,
 };
 

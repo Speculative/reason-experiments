@@ -18,32 +18,25 @@ let clear = (s: State.state, l: layer) => {
     Config.width, Config.height);
 };
 
-let draw_sprite = (s: State.state, l: layer, si: Sprites.spriteInst, x: int, y: int) => {
-  let (fx, fy) = Manifest.get_frame_offset(si);
-  let ctx = layer_context(l, s);
-  if (si.flip) {
-    Canvas.drawImage(
-      ctx,
-      Sprites.get_sprite_sheet_def(si.def.sheet).img,
-      fx, fy,
-      si.def.w, si.def.h,
-      x, y,
-      si.def.w, si.def.h);
-    let img = Canvas.getImageData(ctx, x, y, si.def.w, si.def.h);
-    Canvas.clearRect(
-      ctx,
-      x, y,
-      si.def.w, si.def.h);
-    Canvas.putImageData(ctx, Manifest.hflip_img(img), x, y);
-  } else {
-    Canvas.drawImage(
-      ctx,
-      Sprites.get_sprite_sheet_def(si.def.sheet).img,
-      fx, fy,
-      si.def.w, si.def.h,
-      x, y,
-      si.def.w, si.def.h);
+let get_sprite_img = (s: State.state, si: Sprites.spriteInst, ctx: Canvas.context) => {
+  let optionCacheEntry = Immutable.IntMap.get(Sprites.get_sprite_id(si.def.sprite), s.manifest.spriteCache);
+  switch optionCacheEntry {
+  | Some(cacheEntry) => {
+    let dirSpriteList = if (si.flip) {
+      cacheEntry.sf
+    } else {
+      cacheEntry.s
+    };
+    List.nth(dirSpriteList, si.frame)
+    }
+  | None => Canvas.createImagedata(ctx, si.def.w, si.def.h)
   };
+};
+
+let draw_sprite = (s: State.state, l: layer, si: Sprites.spriteInst, x: int, y: int) => {
+  let ctx = layer_context(l, s);
+  let spriteImg = get_sprite_img(s, si, ctx);
+  Canvas.putImageData(ctx, spriteImg, x, y);
   ()
 };
 

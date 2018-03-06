@@ -59,6 +59,7 @@ module Canvas = {
   [@bs.send] external clearRect : (context, int, int, int, int) => unit = "clearRect";
   [@bs.send] external arc : (context, float, float, float, float, float) => unit = "arc";
   [@bs.send] external drawImage : (context, DOM.imageElement, int, int, int, int, int, int, int, int) => unit = "drawImage";
+  [@bs.send] external createImagedata : (context, int, int) => imageData = "createImageData";
   [@bs.send] external getImageData : (context, int, int, int, int) => imageData = "getImageData";
   [@bs.send] external putImageData : (context, imageData, int, int) => unit = "putImageData";
 

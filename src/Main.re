@@ -16,8 +16,6 @@ let neutralControls: Controls.controls = {
   jump: false,
 };
 
-let updating = ref(false);
-
 let controlFrame = ref(neutralControls);
 
 type rootStore = Reduce.t(State.state, Actions.actions);
@@ -74,6 +72,14 @@ let onControlChange = (s: State.state) => {
   [])
 };
 
+let populateManifest = (s: State.state) => {
+  ({
+    ...s,
+    manifest: Manifest.populate_manifest(s.manifest)
+  },
+  [])
+};
+
 let update = (s: State.state, ticks: float) => {
   let speed = 5.;
   let (svx, svy) = controlVelocity(s.controls);
@@ -120,14 +126,14 @@ let render = (s: State.state) => {
 let rec frame = (store: rootStore, t': float) => {
   DOM.cancelAnimationFrame(request^);
 
-  updating := true;
+  Reduce.drainDispatch(store, AsyncDispatch.getDispatch());
+  AsyncDispatch.clearDispatch();
   Reduce.dispatch(store, ControlUpdate(controlFrame^));
   while (Reduce.getState(store).t < t') {
     Reduce.dispatch(store, Tick)
   };
   render(Reduce.getState(store));
 
-  updating := false;
   request := DOM.requestAnimationFrame(frame(store))
 };
 
@@ -135,6 +141,7 @@ let reduce = (s: State.state, a: Actions.actions) =>
   switch a {
   | ControlUpdate(c) => updateControls(s, c)
   | ControlChange => onControlChange(s)
+  | PopulateManifest => populateManifest(s)
   | Tick => update(s, updateTicks)
   | NoOp => (s, [])
   };
@@ -177,7 +184,7 @@ let bootstrap = () => {
     }
   );
 
-  let spriteCache: Immutable.IntMap.t(State.spriteCacheEntry) = Immutable.IntMap.empty();
+  let spriteCache: Immutable.IntMap.t(ManifestState.spriteCacheEntry) = Immutable.IntMap.empty();
 
   let initialState: State.state = {
     t: DOM.now(),
@@ -190,12 +197,14 @@ let bootstrap = () => {
     controls: neutralControls,
     player: Entity.make_entity(Player, 0, 0),
     manifest: {
-      spriteCache: spriteCache
+      complete: false,
+      sheetsLoaded: 0,
+      spriteCache: spriteCache,
     }
   };
 
   let store = Reduce.create(initialState, reduce);
-  Sprites.initialize();
+  Manifest.initialize();
 
   request := DOM.requestAnimationFrame(frame(store));
   ()
