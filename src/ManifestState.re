@@ -1,8 +1,8 @@
 open DOM;
 
 type spriteCacheEntry = {
-  s: list(Canvas.imageData),
-  sf: list(Canvas.imageData)
+  s: list(DOM.element),
+  sf: list(DOM.element)
 };
 
 type state = {

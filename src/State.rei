@@ -3,6 +3,7 @@ open DOM;
 type layers = {
   player: Canvas.context,
   background: Canvas.context,
+  debug: Canvas.context,
 };
 
 type state = {
@@ -11,6 +12,9 @@ type state = {
   controls: Controls.controls,
   sx: float,
   sy: float,
+  svx: float,
+  svy: float,
+  grounded: bool,
   player: Entity.entityInst,
   manifest: ManifestState.state,
 };

@@ -3,5 +3,6 @@ type actions =
   | PopulateManifest
   | ControlUpdate(Controls.controls)
   | ControlChange
+  | Jump
   | NoOp;
 

@@ -49,6 +49,7 @@ module Canvas = {
   [@bs.set] external strokeStyle : (context, string) => unit = "strokeStyle";
   [@bs.set] external globalAlpha : (context, float) => unit = "globalAlpha";
   [@bs.set] external globalCompositeOperation : (context, string) => unit = "globalCompositeOperation";
+  [@bs.set] external font : (context, string) => unit = "font";
   [@bs.send] external save : context => unit = "save";
   [@bs.send] external restore : context => unit = "restore";
   [@bs.send] external scale : context => float => float => unit = "scale";
@@ -56,10 +57,13 @@ module Canvas = {
   [@bs.send] external fill : context => unit = "fill";
   [@bs.send] external stroke : context => unit = "stroke";
   [@bs.send] external fillRect : (context, int, int, int, int) => unit = "fillRect";
+  [@bs.send] external strokeRect : (context, int, int, int, int) => unit = "strokeRect";
   [@bs.send] external clearRect : (context, int, int, int, int) => unit = "clearRect";
+  [@bs.send] external fillText : (context, string, int, int) => unit = "fillText";
   [@bs.send] external arc : (context, float, float, float, float, float) => unit = "arc";
   [@bs.send] external drawImage : (context, DOM.imageElement, int, int, int, int, int, int, int, int) => unit = "drawImage";
-  [@bs.send] external createImagedata : (context, int, int) => imageData = "createImageData";
+  [@bs.send] external drawCanvas : (context, DOM.element, int, int, int, int, int, int, int, int) => unit = "drawImage";
+  [@bs.send] external createImageData : (context, int, int) => imageData = "createImageData";
   [@bs.send] external getImageData : (context, int, int, int, int) => imageData = "getImageData";
   [@bs.send] external putImageData : (context, imageData, int, int) => unit = "putImageData";
 

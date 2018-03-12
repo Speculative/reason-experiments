@@ -10,7 +10,9 @@ type spriteSheet =
 type sprite =
 | PlayerStand
 | PlayerWalk
-| Background;
+| Background
+| GroundTop
+| GroundFill;
 
 /*
 ########################
@@ -60,7 +62,7 @@ let playerSheet = {
 };
 
 let tileSheet = {
-  sprites: [Background],
+  sprites: [Background, GroundTop, GroundFill],
   url: "assets/tiles.png",
   w: 384,
   h: 192,
@@ -111,11 +113,35 @@ let background = {
   tframe: 1,
 };
 
+let groundTop = {
+  sprite: GroundTop,
+  sheet: TileSheet,
+  x: 24,
+  y: 24,
+  w: 24,
+  h: 24,
+  frames: 1,
+  tframe: 1,
+};
+
+let groundFill = {
+  sprite: GroundFill,
+  sheet: TileSheet,
+  x: 24,
+  y: 48,
+  w: 24,
+  h: 24,
+  frames: 1,
+  tframe: 1,
+};
+
 let get_sprite_def = (s: sprite) => {
   switch s {
   | PlayerStand => playerStand
   | PlayerWalk => playerWalk
   | Background => background
+  | GroundTop => groundTop
+  | GroundFill => groundFill
   };
 };
 
@@ -124,6 +150,8 @@ let get_sprite_id = (s: sprite) => {
   | PlayerStand => 0
   | PlayerWalk => 1
   | Background => 2
+  | GroundTop => 3
+  | GroundFill => 4
   };
 };
 

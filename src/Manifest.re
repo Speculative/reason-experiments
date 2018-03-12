@@ -69,11 +69,15 @@ let get_frame_img = (sdef: spriteDef, shdef: spriteSheetDef, img: DOM.imageEleme
         w, h,
         0, 0,
         w, h);
-      if (flip) {
+      let imgData = if (flip) {
         hflip_img(Canvas.getImageData(ctx, 0, 0, w, h));
       } else {
         Canvas.getImageData(ctx, 0, 0 , w, h)
-      }
+      };
+      Canvas.clearRect(ctx, 0, 0, w, h);
+      Canvas.putImageData(ctx, imgData, 0, 0);
+
+      canvas
     },
     range(0, sdef.frames))
 };

@@ -3,6 +3,7 @@ open DOM;
 let width = 600;
 let height = 240;
 let request = ref(0);
+let gravity = 0.5;
 
 let updatesPerSecond = 60.;
 
@@ -24,17 +25,20 @@ let randRange = (min: float, max: float) =>
   Math.random() *. (max -. min) +. min;
 
 let updateControls = (s: State.state, c: Controls.controls) => {
-  let dispatch = if (c != s.controls) {
-    [Actions.ControlChange]
-  } else {
-    []
+  let dispatch = ref([]);
+  if (c != s.controls) {
+    dispatch := [Actions.ControlChange, ...dispatch^];
+  };
+
+  if (c.jump && !s.controls.jump) {
+    dispatch := [Actions.Jump, ...dispatch^];
   };
 
   ({
     ...s,
     controls: c
   },
-  dispatch)
+  dispatch^)
 };
 
 let controlVelocity = (c: Controls.controls) => {
@@ -46,8 +50,8 @@ let controlVelocity = (c: Controls.controls) => {
   };
 
   let vy = switch (c.up, c.down) {
-  | (true, false) => -1.
-  | (false, true) => 1.
+  | (true, false) => 0.
+  | (false, true) => 0.
   | (true, true) => 0.
   | (false, false) => 0.
   };
@@ -80,20 +84,38 @@ let populateManifest = (s: State.state) => {
   [])
 };
 
+let jump = (s: State.state) => {
+  let jump = s.grounded && s.controls.jump;
+
+  ({
+    ...s,
+    grounded: jump ? false : s.grounded,
+    svy: jump ? -5. : s.svy
+  },
+  [])
+};
+
 let update = (s: State.state, ticks: float) => {
   let speed = 5.;
   let (svx, svy) = controlVelocity(s.controls);
 
   let sx' = s.sx +. svx *. speed;
-  let sy' = s.sy +. svy *. speed;
+  let sy' = s.sy +. s.svy;
 
   let p = Entity.move(s.player, int_of_float(sx'), int_of_float(sy'));
+  let (x, y, w, h) = (p.x, p.y, p.spr.def.w, p.spr.def.h);
+  let player_bound = Physics.getBoundingBox(x, y, w, h);
+  let (tx, ty) = Physics.gridCoord(x, y, w, h);
+  let terrain = Map.get_terrain();
+  let grounded = List.nth(List.nth(terrain, ty + 1), tx);
 
   ({
     ...s,
     t: s.t +. ticks,
     sx: sx',
     sy: sy',
+    svy: grounded ? 0.0 : s.svy +. gravity,
+    grounded: grounded,
     player: Entity.tick_sprite(p, ticks)
   },
   [])
@@ -102,6 +124,7 @@ let update = (s: State.state, ticks: float) => {
 let render = (s: State.state) => {
   Draw.clear(s, Background);
   Draw.clear(s, Player);
+  Draw.clear(s, Debug);
 
   let bg = Map.get_map();
   for (y in 0 to 9) {
@@ -120,6 +143,11 @@ let render = (s: State.state) => {
     Player,
     s.player.spr,
     s.player.x, s.player.y);
+
+  let player_bound = Physics.getBoundingBox(s.player.x, s.player.y, s.player.spr.def.w, s.player.spr.def.h);
+  Draw.draw_bounding(s, player_bound, "#FF0000");
+  Draw.print_debug(s, "(" ++ string_of_int(s.player.x) ++ "," ++ string_of_int(s.player.y) ++ ")", 0);
+  Draw.print_debug(s, string_of_bool(s.grounded), 1);
   ()
 };
 
@@ -141,6 +169,7 @@ let reduce = (s: State.state, a: Actions.actions) =>
   switch a {
   | ControlUpdate(c) => updateControls(s, c)
   | ControlChange => onControlChange(s)
+  | Jump => jump(s)
   | PopulateManifest => populateManifest(s)
   | Tick => update(s, updateTicks)
   | NoOp => (s, [])
@@ -191,9 +220,13 @@ let bootstrap = () => {
     l: {
       background: create_layer("bg"),
       player: create_layer("player"),
+      debug: create_layer("debug"),
     },
     sx: float_of_int(width) /. 2.,
     sy: float_of_int(height) /. 2.,
+    svx: 0.,
+    svy: 0.,
+    grounded: false,
     controls: neutralControls,
     player: Entity.make_entity(Player, 0, 0),
     manifest: {
