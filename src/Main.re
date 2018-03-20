@@ -3,7 +3,7 @@ open DOM;
 let width = 600;
 let height = 240;
 let request = ref(0);
-let gravity = 0.5;
+let gravity = 2.;
 
 let updatesPerSecond = 60.;
 
@@ -50,8 +50,8 @@ let controlVelocity = (c: Controls.controls) => {
   };
 
   let vy = switch (c.up, c.down) {
-  | (true, false) => 0.
-  | (false, true) => 0.
+  | (true, false) => -1.
+  | (false, true) => 1.
   | (true, true) => 0.
   | (false, false) => 0.
   };
@@ -100,7 +100,8 @@ let update = (s: State.state, ticks: float) => {
   let (svx, svy) = controlVelocity(s.controls);
 
   let sx' = s.sx +. svx *. speed;
-  let sy' = s.sy +. s.svy;
+  /* let sy' = s.sy +. s.svy; */
+  let sy' = s.sy +. svy *. speed;
 
   let p = Entity.move(s.player, int_of_float(sx'), int_of_float(sy'));
   let (x, y, w, h) = (p.x, p.y, p.spr.def.w, p.spr.def.h);
@@ -114,7 +115,7 @@ let update = (s: State.state, ticks: float) => {
     t: s.t +. ticks,
     sx: sx',
     sy: sy',
-    svy: grounded ? 0.0 : s.svy +. gravity,
+    /* svy: grounded ? 0.0 : s.svy +. gravity, */
     grounded: grounded,
     player: Entity.tick_sprite(p, ticks)
   },
@@ -138,6 +139,8 @@ let render = (s: State.state) => {
     };
   };
 
+  Draw.draw_collision_test(s);
+
   Draw.draw_sprite(
     s,
     Player,
@@ -146,8 +149,10 @@ let render = (s: State.state) => {
 
   let player_bound = Physics.getBoundingBox(s.player.x, s.player.y, s.player.spr.def.w, s.player.spr.def.h);
   Draw.draw_bounding(s, player_bound, "#FF0000");
+  /*
   Draw.print_debug(s, "(" ++ string_of_int(s.player.x) ++ "," ++ string_of_int(s.player.y) ++ ")", 0);
   Draw.print_debug(s, string_of_bool(s.grounded), 1);
+  */
   ()
 };
 

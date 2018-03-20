@@ -56,6 +56,8 @@ module Canvas = {
   [@bs.send] external beginPath : context => unit = "beginPath";
   [@bs.send] external fill : context => unit = "fill";
   [@bs.send] external stroke : context => unit = "stroke";
+  [@bs.send] external lineTo : (context, int, int) => unit = "lineTo";
+  [@bs.send] external moveTo : (context, int, int) => unit = "moveTo";
   [@bs.send] external fillRect : (context, int, int, int, int) => unit = "fillRect";
   [@bs.send] external strokeRect : (context, int, int, int, int) => unit = "strokeRect";
   [@bs.send] external clearRect : (context, int, int, int, int) => unit = "clearRect";
